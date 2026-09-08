@@ -22,7 +22,7 @@ Databases included: **MongoDB**, **Redis**, **Neo4j** and **Cassandra**.
 
 ## Requirements
 
-- Docker Desktop running (`docker info` must respond)
+- Docker running (`docker info` must respond) — Docker Desktop on macOS/Windows, Docker Engine + the Compose plugin on Linux
 - Node >= 20
 - pnpm >= 9 (`corepack enable && corepack prepare pnpm@9.15.0 --activate`)
 
@@ -32,6 +32,35 @@ Databases included: **MongoDB**, **Redis**, **Neo4j** and **Cassandra**.
 pnpm install
 cp .env.example .env   # edit ports/credentials if you need to
 ```
+
+On Windows PowerShell the copy is `Copy-Item .env.example .env`.
+
+## Platform notes
+
+The CLI itself is the same everywhere — it shells out to `docker compose`. The differences are in the Docker setup around it.
+
+### Linux
+
+- No Docker Desktop needed: install Docker Engine plus the `docker-compose-plugin` package (the CLI calls `docker compose`, not the legacy `docker-compose`).
+- Add yourself to the `docker` group or every command needs `sudo`:
+  ```bash
+  sudo usermod -aG docker $USER   # log out and back in for it to take effect
+  ```
+- Containers run directly on the host kernel, so there's no VM memory cap to tune and the published ports bind straight to `localhost`.
+
+### Windows
+
+- Use Docker Desktop with the **WSL2 backend**. Running the CLI from inside a WSL2 distro is the smoothest path; PowerShell and Windows Terminal work too.
+- **Git Bash / MSYS breaks interactive shells.** `pnpm bd shell <svc>` runs `docker exec -it` underneath, and Git Bash fails it with `the input device is not a TTY`. Use PowerShell, Windows Terminal or WSL — or prefix the raw command with `winpty`:
+  ```bash
+  winpty docker exec -it bd-mongo mongosh -u root -p root --authenticationDatabase admin
+  ```
+  Every non-interactive command (`up`, `down`, `check`, `status`, `logs`, `keyspace`) works fine in Git Bash.
+- If `up` fails with `bind: An attempt was made to access a socket in a way forbidden by its access permissions`, the port sits inside a Hyper-V reserved range. Change it in `.env` (`MONGO_PORT`, `REDIS_PORT`, …) rather than fighting the reservation.
+
+### macOS and Windows: give the VM enough memory
+
+Docker Desktop runs the containers inside a VM with a memory cap, and **Cassandra alone wants ~2 GB**. If `pnpm bd up cassandra` never goes healthy or the container keeps restarting, raise the limit in Docker Desktop → Settings → Resources to 4 GB or more. Linux has no such cap.
 
 ## Usage
 
@@ -227,10 +256,26 @@ exit
 Every port is published on `localhost`, so if you'd rather use locally installed clients:
 
 ```bash
+# macOS (Homebrew)
 brew install mongosh redis          # redis ships redis-cli
 brew install cassandra              # ships cqlsh
-# cypher-shell comes with Neo4j Desktop, or just use the browser on :7474
 
+# Debian/Ubuntu
+sudo apt install redis-tools        # redis-cli
+sudo apt install cassandra-tools    # cqlsh (or: pipx install cqlsh)
+# mongosh: MongoDB's own apt repo, see https://www.mongodb.com/docs/mongodb-shell/install/
+
+# Windows (winget/scoop/choco)
+winget install MongoDB.Shell
+scoop install redis                 # ships redis-cli
+# cqlsh: pipx install cqlsh (needs Python)
+
+# cypher-shell comes with Neo4j Desktop on any OS, or just use the browser on :7474
+```
+
+Then, identically on every platform:
+
+```bash
 mongosh "mongodb://root:root@localhost:27017/?authSource=admin"
 redis-cli -h localhost -p 6379 -a redis
 cqlsh localhost 9042
