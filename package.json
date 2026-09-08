@@ -1,9 +1,10 @@
 {
   "name": "bd-base",
   "version": "1.0.0",
-  "description": "Levanta bases de datos (MongoDB, Redis, Neo4j, Cassandra) en Docker de forma individual",
+  "description": "Spin up NoSQL databases (MongoDB, Redis, Neo4j, Cassandra) in Docker, one at a time",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20",

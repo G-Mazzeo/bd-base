@@ -1,77 +1,77 @@
 # bd-base
 
-**Sandbox local de bases de datos NoSQL para hacer pruebas.** Una CLI que levanta MongoDB, Redis, Neo4j y Cassandra en Docker — cada una por separado, en segundos, sin instalar nada en tu máquina.
+**A local NoSQL database sandbox for testing things out.** A CLI that spins up MongoDB, Redis, Neo4j and Cassandra in Docker — each one on its own, in seconds, with nothing installed on your machine.
 
-## Para qué sirve
+## What it's for
 
-Cuando querés probar algo — una query, un modelo de datos, un driver, un ejercicio de la facultad, una idea antes de meterla en un proyecto real — necesitás una base corriendo. Instalarla localmente ensucia la máquina; escribir un `docker-compose` desde cero cada vez es tedioso; levantar las cuatro juntas se come la RAM al pedo.
+Whenever you want to try something out — a query, a data model, a driver, a homework exercise, an idea before it goes into a real project — you need a database running. Installing one locally clutters your machine; writing a `docker-compose` file from scratch every time is tedious; and starting all four at once eats your RAM for nothing.
 
-Este proyecto resuelve eso:
+This project fixes that:
 
-- **Una base a la vez.** `pnpm bd up mongo` levanta sólo MongoDB. Las otras tres ni se enteran (`docker compose` con *profiles*).
-- **Espera a que esté lista.** El comando no vuelve hasta que el healthcheck pasa, así que no probás contra una base que todavía está booteando.
-- **Verifica de verdad.** `pnpm bd check` se conecta desde Node con los drivers oficiales (`mongodb`, `ioredis`, `neo4j-driver`, `cassandra-driver`) y hace un ping real, no un `docker ps`.
-- **Te tira adentro de la consola.** `pnpm bd shell neo4j` abre `cypher-shell` en el contenedor. Cero clientes instalados en tu Mac.
-- **Datos descartables.** Persisten en volúmenes entre `up`/`down`; `pnpm bd reset` borra todo y arrancás de cero.
+- **One database at a time.** `pnpm bd up mongo` starts MongoDB only. The other three never even wake up (`docker compose` *profiles*).
+- **Waits until it's actually ready.** The command doesn't return until the healthcheck passes, so you never test against a database that's still booting.
+- **Verifies for real.** `pnpm bd check` connects from Node using the official drivers (`mongodb`, `ioredis`, `neo4j-driver`, `cassandra-driver`) and does a real ping — not a `docker ps`.
+- **Drops you straight into the shell.** `pnpm bd shell neo4j` opens `cypher-shell` inside the container. Zero clients installed on your machine.
+- **Throwaway data.** It persists in volumes across `up`/`down`; `pnpm bd reset` wipes everything so you start from scratch.
 
-No hay servidor ni API: es puro tooling. El README de abajo incluye además una guía rápida de cada consola (`mongosh`, `redis-cli`, `cypher-shell`, `cqlsh`) con los primeros comandos de cada una.
+There's no server and no API: it's pure tooling. The rest of this README also includes a quick tour of each database shell (`mongosh`, `redis-cli`, `cypher-shell`, `cqlsh`) with the first commands you'll want in each one.
 
-Bases incluidas: **MongoDB**, **Redis**, **Neo4j** y **Cassandra**.
+Databases included: **MongoDB**, **Redis**, **Neo4j** and **Cassandra**.
 
 ---
 
-## Requisitos
+## Requirements
 
-- Docker Desktop corriendo (`docker info` debe responder)
+- Docker Desktop running (`docker info` must respond)
 - Node >= 20
 - pnpm >= 9 (`corepack enable && corepack prepare pnpm@9.15.0 --activate`)
 
-## Instalación
+## Install
 
 ```bash
 pnpm install
-cp .env.example .env   # ya viene copiado; editá puertos/credenciales si hace falta
+cp .env.example .env   # edit ports/credentials if you need to
 ```
 
-## Uso
+## Usage
 
 ```bash
-pnpm bd <comando> [servicio...]
+pnpm bd <command> [service...]
 ```
 
-| Comando | Qué hace |
+| Command | What it does |
 |---|---|
-| `list` | Lista los servicios disponibles |
-| `up <svc...\|all>` | Levanta y **espera** a que queden healthy |
-| `down <svc...\|all>` | Frena y elimina los contenedores (los datos se conservan) |
+| `list` | Lists the available services |
+| `up <svc...\|all>` | Starts them and **waits** until they're healthy |
+| `down <svc...\|all>` | Stops and removes the containers (data is kept) |
 | `restart <svc...\|all>` | `down` + `up` |
-| `status` | Estado de todos los contenedores |
-| `logs <svc> [-f]` | Logs (`-f` para seguirlos) |
-| `check [svc...]` | Prueba la conexión real desde Node |
-| `info [svc...]` | Datos de conexión |
-| `shell <svc>` | Abre el cliente nativo dentro del contenedor |
-| `keyspace` | Crea el keyspace de Cassandra |
-| `reset <svc...\|all>` | **Borra contenedores y volúmenes (se pierden los datos)** |
+| `status` | Status of every container |
+| `logs <svc> [-f]` | Logs (`-f` to follow them) |
+| `check [svc...]` | Tests a real connection from Node |
+| `info [svc...]` | Connection details |
+| `shell <svc>` | Opens the native client inside the container |
+| `keyspace` | Creates the Cassandra keyspace |
+| `reset <svc...\|all>` | **Deletes containers and volumes (data is lost)** |
 
-### Ejemplos
+### Examples
 
 ```bash
-pnpm bd up mongo            # solo MongoDB
-pnpm bd up redis neo4j      # dos a la vez
-pnpm bd up all              # las cuatro
-pnpm bd check               # ¿conectan todas?
-pnpm bd shell mongo         # mongosh dentro del contenedor
+pnpm bd up mongo            # MongoDB only
+pnpm bd up redis neo4j      # two at once
+pnpm bd up all              # all four
+pnpm bd check               # do they all connect?
+pnpm bd shell mongo         # mongosh inside the container
 pnpm bd logs cassandra -f
-pnpm bd down mongo          # baja MongoDB, los datos quedan
+pnpm bd down mongo          # stops MongoDB, data stays
 ```
 
 ---
 
-## Conectarse por consola a cada base
+## Connecting to each database from the console
 
-Los clientes (`mongosh`, `redis-cli`, `cypher-shell`, `cqlsh`) **ya vienen dentro de cada imagen**: no hace falta instalar nada en tu Mac.
+The clients (`mongosh`, `redis-cli`, `cypher-shell`, `cqlsh`) **already ship inside each image**: you don't need to install anything locally.
 
-Atajo de la CLI del proyecto — abre la consola nativa de la base, en modo interactivo:
+Shortcut from the project CLI — opens the database's native shell, interactively:
 
 ```bash
 pnpm bd shell mongo
@@ -80,182 +80,182 @@ pnpm bd shell neo4j
 pnpm bd shell cassandra
 ```
 
-Cada uno es un `docker exec -it` por debajo. El detalle por base, con el comando crudo equivalente, está abajo.
+Each one is a `docker exec -it` underneath. The per-database detail, with the raw equivalent command, is below.
 
 ---
 
 ### MongoDB — `mongosh`
 
 ```bash
-# Interactivo
+# Interactive
 pnpm bd shell mongo
-# equivale a:
+# equivalent to:
 docker exec -it bd-mongo mongosh -u root -p root --authenticationDatabase admin
 
-# Entrando directo a la base 'sandbox'
+# Going straight into the 'sandbox' database
 docker exec -it bd-mongo mongosh -u root -p root --authenticationDatabase admin sandbox
 
-# Una sola consulta, sin entrar al shell
+# A single query, without entering the shell
 docker exec bd-mongo mongosh -u root -p root --authenticationDatabase admin --quiet \
   --eval 'db.getMongo().getDBNames()'
 ```
 
-Primeros comandos dentro de `mongosh`:
+First commands inside `mongosh`:
 
 ```javascript
-show dbs                                  // lista de bases
-use sandbox                                  // se crea recién al insertar algo
-db.alumnos.insertOne({ nombre: "Ana" })
-db.alumnos.find()
+show dbs                                  // list of databases
+use sandbox                               // only created once you insert something
+db.students.insertOne({ name: "Ana" })
+db.students.find()
 show collections
-exit                                      // salir
+exit                                      // quit
 ```
 
-> `MONGO_INITDB_DATABASE=sandbox` no crea la base vacía: MongoDB la materializa con el primer insert. Por eso `show dbs` al principio muestra sólo `admin`, `config` y `local`.
+> `MONGO_INITDB_DATABASE=sandbox` does not create an empty database: MongoDB materializes it on the first insert. That's why `show dbs` initially shows only `admin`, `config` and `local`.
 
 ---
 
 ### Redis — `redis-cli`
 
 ```bash
-# Interactivo
+# Interactive
 pnpm bd shell redis
-# equivale a:
+# equivalent to:
 docker exec -it bd-redis redis-cli -a redis
 
-# Un solo comando (--no-auth-warning silencia el aviso por pasar la password en la línea)
+# A single command (--no-auth-warning silences the warning about passing the password on the command line)
 docker exec bd-redis redis-cli --no-auth-warning -a redis PING
 ```
 
-Primeros comandos dentro de `redis-cli`:
+First commands inside `redis-cli`:
 
 ```
 PING                        -> PONG
-SET alumno:1 "Ana"
-GET alumno:1
-KEYS *                      # OK en local; en producción se usa SCAN
-TTL alumno:1
-EXPIRE alumno:1 60
-DEL alumno:1
-FLUSHALL                    # borra TODO lo que hay en Redis
+SET student:1 "Ana"
+GET student:1
+KEYS *                      # fine locally; use SCAN in production
+TTL student:1
+EXPIRE student:1 60
+DEL student:1
+FLUSHALL                    # wipes EVERYTHING in Redis
 INFO server
 exit
 ```
 
-> Si entrás sin `-a`, cualquier comando responde `NOAUTH Authentication required.`. Se arregla con `AUTH redis` como primer comando.
+> If you connect without `-a`, every command answers `NOAUTH Authentication required.`. Fix it by running `AUTH redis` as your first command.
 
 ---
 
-### Neo4j — `cypher-shell` (o el browser web)
+### Neo4j — `cypher-shell` (or the web browser)
 
 ```bash
-# Interactivo
+# Interactive
 pnpm bd shell neo4j
-# equivale a:
+# equivalent to:
 docker exec -it bd-neo4j cypher-shell -u neo4j -p neo4jpassword
 
-# Una sola consulta
-docker exec bd-neo4j cypher-shell -u neo4j -p neo4jpassword "RETURN 'ok' AS estado;"
+# A single query
+docker exec bd-neo4j cypher-shell -u neo4j -p neo4jpassword "RETURN 'ok' AS status;"
 
-# Eligiendo base (Neo4j 5 es multi-base: 'neo4j' es la default, 'system' la de administración)
+# Choosing a database (Neo4j 5 is multi-database: 'neo4j' is the default, 'system' the admin one)
 docker exec -it bd-neo4j cypher-shell -u neo4j -p neo4jpassword -d neo4j
 ```
 
-Primeras consultas dentro de `cypher-shell` (**cada una termina en `;`**):
+First queries inside `cypher-shell` (**each one ends with `;`**):
 
 ```cypher
 SHOW DATABASES;
-CREATE (a:Alumno {nombre: "Ana"});
-MATCH (a:Alumno) RETURN a;
-MATCH (a:Alumno {nombre: "Ana"})
-CREATE (m:Curso {nombre: "NoSQL"})
-CREATE (a)-[:CURSA]->(m);
+CREATE (a:Student {name: "Ana"});
+MATCH (a:Student) RETURN a;
+MATCH (a:Student {name: "Ana"})
+CREATE (c:Course {name: "NoSQL"})
+CREATE (a)-[:ENROLLED_IN]->(c);
 MATCH (a)-[r]->(b) RETURN a, r, b;
-MATCH (n) DETACH DELETE n;              // vacía el grafo
+MATCH (n) DETACH DELETE n;              // empties the graph
 :exit
 ```
 
-**Alternativa gráfica:** abrí <http://localhost:7474> en el navegador y logueate con `neo4j` / `neo4jpassword`. Es el Neo4j Browser: misma consola de Cypher pero dibujando el grafo. Para explorar grafos suele ser más cómodo que la terminal.
+**Graphical alternative:** open <http://localhost:7474> in your browser and log in with `neo4j` / `neo4jpassword`. That's the Neo4j Browser: the same Cypher console, but it draws the graph. For exploring graphs it's usually more comfortable than the terminal.
 
 ---
 
 ### Cassandra — `cqlsh`
 
-La imagen tarda ~1 minuto en quedar healthy después del `up`. `pnpm bd up` te espera solo.
+The image takes ~1 minute to become healthy after `up`. `pnpm bd up` waits for you.
 
 ```bash
 pnpm bd up cassandra
-pnpm bd keyspace          # crea el keyspace 'sandbox' con replication_factor 1
+pnpm bd keyspace          # creates the 'sandbox' keyspace with replication_factor 1
 
-# Interactivo
+# Interactive
 pnpm bd shell cassandra
-# equivale a:
+# equivalent to:
 docker exec -it bd-cassandra cqlsh
 
-# Una sola consulta
+# A single query
 docker exec bd-cassandra cqlsh -e "DESCRIBE KEYSPACES;"
 ```
 
-Primeros comandos dentro de `cqlsh` (**cada uno termina en `;`**):
+First commands inside `cqlsh` (**each one ends with `;`**):
 
 ```sql
 DESCRIBE KEYSPACES;
 USE sandbox;
 
-CREATE TABLE alumnos (
+CREATE TABLE students (
   id uuid PRIMARY KEY,
-  nombre text
+  name text
 );
 
-INSERT INTO alumnos (id, nombre) VALUES (uuid(), 'Ana');
-SELECT * FROM alumnos;
+INSERT INTO students (id, name) VALUES (uuid(), 'Ana');
+SELECT * FROM students;
 DESCRIBE TABLES;
-DESCRIBE TABLE alumnos;
+DESCRIBE TABLE students;
 exit
 ```
 
-> Cassandra no crea keyspaces solos. Si no corriste `pnpm bd keyspace`, hacelo a mano:
+> Cassandra doesn't create keyspaces on its own. If you didn't run `pnpm bd keyspace`, do it by hand:
 > ```sql
 > CREATE KEYSPACE sandbox WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 > ```
-> `SimpleStrategy` con factor 1 sirve porque es un solo nodo.
+> `SimpleStrategy` with factor 1 works here because it's a single node.
 
 ---
 
-### Conectarse desde tu Mac en vez de desde el contenedor
+### Connecting from your machine instead of from the container
 
-Todos los puertos están publicados en `localhost`, así que si preferís los clientes instalados localmente:
+Every port is published on `localhost`, so if you'd rather use locally installed clients:
 
 ```bash
-brew install mongosh redis          # redis trae redis-cli
-brew install cassandra             # trae cqlsh
-# cypher-shell viene con Neo4j Desktop, o usá el browser en :7474
+brew install mongosh redis          # redis ships redis-cli
+brew install cassandra              # ships cqlsh
+# cypher-shell comes with Neo4j Desktop, or just use the browser on :7474
 
 mongosh "mongodb://root:root@localhost:27017/?authSource=admin"
 redis-cli -h localhost -p 6379 -a redis
 cqlsh localhost 9042
 ```
 
-Para clientes gráficos (MongoDB Compass, DBeaver, RedisInsight) usá los mismos host/puerto/credenciales de la tabla de abajo.
+For GUI clients (MongoDB Compass, DBeaver, RedisInsight) use the same host/port/credentials from the table below.
 
-### Salir de cada consola
+### Exiting each shell
 
-| Base | Cómo salir |
+| Database | How to exit |
 |---|---|
-| mongosh | `exit` o `Ctrl-D` |
-| redis-cli | `exit` o `Ctrl-D` |
-| cypher-shell | `:exit` o `Ctrl-D` |
-| cqlsh | `exit` o `Ctrl-D` |
+| mongosh | `exit` or `Ctrl-D` |
+| redis-cli | `exit` or `Ctrl-D` |
+| cypher-shell | `:exit` or `Ctrl-D` |
+| cqlsh | `exit` or `Ctrl-D` |
 
-Salir de la consola **no** frena la base. Para eso: `pnpm bd down <svc>`.
+Leaving the shell does **not** stop the database. For that: `pnpm bd down <svc>`.
 
 ---
 
-## Cómo funciona el aislamiento
+## How the isolation works
 
-`docker-compose.yml` usa **profiles**: ningún servicio arranca con un `docker compose up` pelado. Cada servicio sólo se levanta cuando lo nombrás explícitamente, y así podés correr una sola base sin tocar las demás.
+`docker-compose.yml` uses **profiles**: no service starts on a bare `docker compose up`. Each service only comes up when you name it explicitly, so you can run a single database without touching the others.
 
-Equivalentes en Docker puro, si querés saltear la CLI:
+Plain Docker equivalents, if you'd rather skip the CLI:
 
 ```bash
 docker compose up -d --wait mongo
@@ -263,26 +263,26 @@ docker compose rm -f -s mongo
 docker compose --profile all ps -a
 ```
 
-## Datos de conexión por defecto
+## Default connection details
 
-| Base | Puerto(s) | Credenciales |
+| Database | Port(s) | Credentials |
 |---|---|---|
 | MongoDB | 27017 | `root` / `root` (authSource `admin`) |
 | Redis | 6379 | password `redis` |
 | Neo4j | 7474 (HTTP), 7687 (Bolt) | `neo4j` / `neo4jpassword` |
-| Cassandra | 9042 | sin auth, DC `datacenter1` |
+| Cassandra | 9042 | no auth, DC `datacenter1` |
 
-Todo configurable en `.env`. Los datos persisten en volúmenes nombrados de Docker (`bd-base_mongo-data`, etc.) y sobreviven a `down`.
+All configurable in `.env`. Data lives in named Docker volumes (`bd-base_mongo-data`, etc.) and survives `down`.
 
-## Estructura
+## Structure
 
 ```
-docker-compose.yml     los 4 servicios, cada uno con su profile y healthcheck
-.env / .env.example    puertos y credenciales
-src/cli.ts             la CLI
-src/docker.ts          wrapper de `docker compose`
-src/env.ts             config tipada + URIs de conexión
-src/services/          una definición por base (puertos, conexión, check)
+docker-compose.yml     the 4 services, each with its profile and healthcheck
+.env / .env.example    ports and credentials
+src/cli.ts             the CLI
+src/docker.ts          `docker compose` wrapper
+src/env.ts             typed config + connection URIs
+src/services/          one definition per database (ports, connection, check)
 ```
 
 ## Build
@@ -291,3 +291,7 @@ src/services/          una definición por base (puertos, conexión, check)
 pnpm typecheck
 pnpm build && pnpm start status
 ```
+
+## License
+
+[MIT](LICENSE) © Gianni Mazzeo
