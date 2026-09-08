@@ -1,0 +1,33 @@
+{
+  "name": "bd-base",
+  "version": "1.0.0",
+  "description": "Levanta bases de datos (MongoDB, Redis, Neo4j, Cassandra) en Docker de forma individual",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "bin": {
+    "bd": "./dist/cli.js"
+  },
+  "scripts": {
+    "bd": "tsx src/cli.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "cassandra-driver": "^4.7.2",
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.4.2",
+    "mongodb": "^6.13.0",
+    "neo4j-driver": "^5.28.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
